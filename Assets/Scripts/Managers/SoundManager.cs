@@ -6,7 +6,9 @@ public enum SoundType
 {
     WAVE,
     ENGINE,
-    FOOTSTEP
+    FOOTSTEP,
+    CAST_ROD,
+    REEL_IN
 }
 
 [RequireComponent(typeof(AudioSource))]
