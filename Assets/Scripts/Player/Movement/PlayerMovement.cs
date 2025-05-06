@@ -12,9 +12,13 @@ public class PlayerMovement : MonoBehaviour
     float horizontalInput;
     float verticalInput;
 
+    public GameObject player;
+
     Vector3 moveDirection;
 
     Rigidbody rb;
+
+    private bool playingSound = false;
 
     private void Start()
     {
@@ -25,6 +29,15 @@ public class PlayerMovement : MonoBehaviour
     private void Update()
     {
         MyInput();
+
+        float xVel = rb.velocity.x;
+        float zVel = rb.velocity.z;
+
+        float HorizInput = Input.GetAxisRaw("Horizontal");
+        if ((xVel > 0.1f || zVel > 0.1f) && HorizInput > 0.1f && !playingSound)
+        {
+            //Movement detection
+        }
     }
 
     private void FixedUpdate()
