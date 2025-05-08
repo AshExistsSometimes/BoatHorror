@@ -4,34 +4,61 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [ExecuteAlways]
-public class LightManager : MonoBehaviour
+public class SceneManager : MonoBehaviour
 {
-    public bool pauseDaylightCycle = false;
+    [Header("DEBUG")]
+    public int ClockTime;
+    [SerializeField] private float MinutesPerDay;
 
-    // References
+    public bool pauseDaylightCycle = false;
+    [SerializeField] private bool IsDay;
+    [SerializeField] private bool IsNight;
+    [Space]
+    public bool isLoading = true;
+
+    [Header("REFERENCES")]
+    public GameObject LoadingScreen;
+    public GameObject soundManager;
+    //public GameObject environmentManager; // A surprise tool that will help us later
+    [Space]
     public Light DirectionalLight;
 
-    // Colours
+    [Header("COLOURS")]
     public Gradient FogGradient;
 
-    // Variables
+    [Header("VARIABLES")]
     [Range(0, 24)] 
     public float TimeOfDay;
-
+    [Range(0, 24)]
+    public float TimeOfDayAtStart = 8f;
+    [Space]
+    public float SecondsInAnHour = 10f;// 10 makes day night/cycle 4 minutes | 60 makes a day/night cycle 24 minutes | 3600 makes a day/night cycle take 24 hours
+    [Space]
     [Range(0, 24)]
     public float MorningHour = 6f;
     [Range(0, 24)]
     public float EveningHour = 18f;
+    [Space]
+    public float InitialisationTime = 0.15f;// TO DO: MAKE THIS SCALE WITH TIME.DELTATIME TO SYNC TO PC SPECS
 
-    // Events
+    [Header("EVENTS")]
+    public UnityEvent LoadFinished;
     public UnityEvent IsDaytime;
     public UnityEvent IsNighttime;
 
-    [SerializeField] private bool IsDay;
-    [SerializeField] private bool IsNight;
-    public float SecondsInAnHour = 10f;// 10 makes day night/cycle 4 minutes | 60 makes a day/night cycle 24 minutes | 3600 makes a day/night cycle take 24 hours
+    
 
-    [SerializeField] private float MinutesPerDay;
+    private void Awake()
+    {
+        TimeOfDay = 0f;// Ensures lighting initialises correctly to give the void effect
+        if (LoadingScreen !=null)
+        {
+            isLoading = true;
+            LoadingScreen.SetActive(true);
+            soundManager.SetActive(false);
+            StartCoroutine(RunInitialisation(InitialisationTime));
+        }
+    }
 
     private void Start()
     {
@@ -46,6 +73,7 @@ public class LightManager : MonoBehaviour
                 TimeOfDay += Time.deltaTime * (SecondsInAnHour / 100);
             }
             TimeOfDay %= 24; // Clamp between 0 and 24
+            ClockTime = Mathf.FloorToInt(TimeOfDay %= 24);
             UpdateLighting(TimeOfDay / 24f);
             MinutesPerDay = ((SecondsInAnHour * 24) / 60);
 
@@ -111,6 +139,17 @@ public class LightManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    public IEnumerator RunInitialisation(float loadingTime)
+    {
+        yield return new WaitForSeconds(loadingTime / 1.33333333f);// 3 Quarters of loading time
+        isLoading = false;//                                          Gap Between the initialisation and the player being able to
+        LoadFinished.Invoke();//                                      see and hear ensures that even on a lower end computer,
+        TimeOfDay = TimeOfDayAtStart;//                               the player will see nothing loading in.
+        yield return new WaitForSeconds(loadingTime / 4f);//          1 Quarters of loading time 
+        LoadingScreen.SetActive(false);
+        soundManager.SetActive(true);
     }
 
 }
