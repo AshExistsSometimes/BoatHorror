@@ -28,7 +28,7 @@ public class SceneManager : MonoBehaviour
 
     [Header("VARIABLES")]
     [Range(0, 24)] 
-    public float TimeOfDay;
+    public float TimeOfDay = 0f;
     [Range(0, 24)]
     public float TimeOfDayAtStart = 8f;
     [Space]
@@ -46,23 +46,16 @@ public class SceneManager : MonoBehaviour
     public UnityEvent IsDaytime;
     public UnityEvent IsNighttime;
 
-    
-
-    private void Awake()
+    private void Start()
     {
         TimeOfDay = 0f;// Ensures lighting initialises correctly to give the void effect
-        if (LoadingScreen !=null)
+        if (LoadingScreen != null)
         {
             isLoading = true;
             LoadingScreen.SetActive(true);
             soundManager.SetActive(false);
             StartCoroutine(RunInitialisation(InitialisationTime));
         }
-    }
-
-    private void Start()
-    {
-        TimeOfDay = 0f;
     }
     private void Update()
     {
@@ -86,6 +79,7 @@ public class SceneManager : MonoBehaviour
         {
             UpdateLighting(TimeOfDay / 24f);
             MinutesPerDay = ((SecondsInAnHour * 24) / 60);
+            TimeOfDay = 0f;
         }
 
         if (MorningHour < TimeOfDay && TimeOfDay < EveningHour)// 6am and 6pm | Daytime Check

@@ -23,7 +23,7 @@ public class Sway : MonoBehaviour
         // Rotate the object
         transform.Rotate(swayAxis, swayAngle * Time.deltaTime);
 
-        // Reset the rotation to its original value if needed
+        // Reset the rotation to its original value
         // transform.localEulerAngles = originalRotation;
     }
 }
