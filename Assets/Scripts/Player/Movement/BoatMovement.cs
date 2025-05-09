@@ -26,6 +26,4 @@ public class BoatMovement : MonoBehaviour
             transform.Rotate(0.0f, TurnSpeed * Time.deltaTime, 0.0f);
         }
     }
-
-
 }

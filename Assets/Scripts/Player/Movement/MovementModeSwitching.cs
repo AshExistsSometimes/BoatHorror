@@ -6,21 +6,34 @@ using UnityEngine.Events;
 
 public class MovementModeSwitching : MonoBehaviour
 {
-    public Transform player;
-    public PlayerMovement playerMovement;
-    public BoatMovement boatActive;
+    public GameObject Player;
+    public GameObject Boat;
+    public BoatMovement boatMovement;
+    public BoatMovementNoPhys boatMovement2;
 
-
+    [Space]
     public Transform SeatPoint;
-    public Transform ExitPoint;
+    public float speedToSeat = 5f;
 
+    [Space]
     public UnityEvent StartSailing;
     public UnityEvent StopSailing;
 
-    public float speedToSeat = 5f;
-
+    [Space]
     public bool PlayerSailing = false;
 
+    [Space]
+    private float sailingInputCooldown = 0.2f;
+    private float sailingInputTimer = 0f;
+
+    //  Track boat position
+    private Vector3 lastBoatPosition;
+    private Transform boatTransform;
+
+    private void Start()
+    {
+        boatTransform = Boat.transform;
+    }
 
     public void toggleSailing()
     {
@@ -36,36 +49,59 @@ public class MovementModeSwitching : MonoBehaviour
 
     private void Update()
     {
-            if (PlayerSailing && (Input.GetKeyDown(KeyCode.E) || (Input.GetKeyDown(KeyCode.Escape))))// So the player can leave the sailing state if they arent looking at the wheel
+        if (PlayerSailing)
+        {
+            sailingInputTimer += Time.deltaTime; // Prevents 'E' Press from registering twice in one frame
+
+            // Teleport player to the seat position every frame
+            Player.transform.position = SeatPoint.position;
+
+            // Calculate boat's movement delta
+            Vector3 boatMovementDelta = boatTransform.position - lastBoatPosition;
+
+            // Update player's position based on boat's movement
+            // This should still "lock" the player to the boat smoothly
+            Player.transform.position += boatMovementDelta;
+
+            lastBoatPosition = boatTransform.position;
+
+            // Exit input handling
+            if (sailingInputTimer > sailingInputCooldown &&
+                (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Escape)))
             {
                 ExitSailingState();
             }
-
-        if (PlayerSailing)
-        {
-            player.position = SeatPoint.position;
         }
+    }
+
+    
+
+    public void EnterSailingState()
+    {
+        Debug.Log("Entering Sailing State");
+        Player.transform.position = SeatPoint.position;
+        boatMovement.enabled = true;
+        PlayerSailing = true;
+
+        sailingInputTimer = 0f;
+
+        Player.GetComponent<Rigidbody>().isKinematic = true;
+
+        lastBoatPosition = boatTransform.position;
+
+        StartSailing.Invoke();  
     }
 
     public void ExitSailingState()
     {
-        boatActive.enabled = false;
+        Debug.Log("Exiting Sailing State");
+        boatMovement.enabled = false;
         PlayerSailing = false;
 
-        
-        playerMovement.enabled = true;
+
+        Player.GetComponent<Rigidbody>().isKinematic = false;
 
         StopSailing.Invoke();
-        player.position = SeatPoint.position;
-    }
-
-    public void EnterSailingState()
-    {
-        boatActive.enabled = true;
-        PlayerSailing = true;
-        playerMovement.enabled = false;
-
-
-        StartSailing.Invoke();  
+        Player.transform.position = SeatPoint.position;
     }
 }

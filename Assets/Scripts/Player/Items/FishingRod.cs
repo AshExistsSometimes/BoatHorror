@@ -16,6 +16,7 @@ public class FishingRod : MonoBehaviour
 
     [Header("Settings")]
     public float Cooldown = 0.5f;
+    public float MaxCastDistance = 10f;
 
     [Header("Casting")]
     public KeyCode castKey = KeyCode.Mouse0;
@@ -29,6 +30,8 @@ public class FishingRod : MonoBehaviour
     public float ReelTime = 0.5f;
     public bool ReelSpinning = false;
 
+    private Vector3 lastHookPosition;
+
     public void EquipRod()
     {
         FishingRodEquipped = true;
@@ -37,6 +40,9 @@ public class FishingRod : MonoBehaviour
 
     private void LateUpdate()
     {
+
+        float distanceFromCastPoint = Vector3.Distance(castPoint.position, hook.transform.position);
+        
         if (FishingRodEquipped && RodCastReady && Input.GetKeyDown(castKey))// CAST ROD
         {
             
@@ -61,11 +67,22 @@ public class FishingRod : MonoBehaviour
             hookRb.velocity = Vector3.zero;
             
             StartCoroutine(ReelInHook(Cooldown));
-
             StartCoroutine(ReelingTime(ReelTime));
             StartCoroutine(WaitForCooldown(Cooldown));
 
-            
+            if (hook.activeSelf)// locks hook at max distance from cast point
+            {
+                float currentDistance = Vector3.Distance(castPoint.position, hook.transform.position);
+
+                if (currentDistance > MaxCastDistance)
+                {
+                    Vector3 directionFromCastPoint = (hook.transform.position - castPoint.position).normalized;
+                    hook.transform.position = castPoint.position + directionFromCastPoint * MaxCastDistance;
+                }
+
+                lastHookPosition = hook.transform.position;
+            }
+
         }
 
         if (ReelSpinning)
@@ -73,6 +90,13 @@ public class FishingRod : MonoBehaviour
             _reel.transform.Rotate(0f, 0f, SpinSpeed * Time.deltaTime, Space.Self);
             hook.transform.position = Vector3.Lerp(hook.transform.position, castPoint.transform.position, reelInSpeed);
         }
+
+        if (distanceFromCastPoint > MaxCastDistance)
+        {
+            Vector3 directionFromCastPoint = (hook.transform.position - castPoint.position).normalized;
+            hook.transform.position = castPoint.position + directionFromCastPoint * MaxCastDistance;
+        }
+        lastHookPosition = hook.transform.position;
 
     }
 
@@ -101,11 +125,11 @@ public class FishingRod : MonoBehaviour
         hookRb.drag = 0.5f;
         hookRb.angularDrag = 0.4f;
 
-        //Add force
+        //Add force to hook
         Vector3 forceToAdd = cam.transform.forward * castForce + transform.up * castUpForce;
 
         hookRb.AddForce(forceToAdd);
-        
+
     }
 
     private IEnumerator ReelInHook(float reelingTime)
