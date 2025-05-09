@@ -9,7 +9,6 @@ public class MovementModeSwitching : MonoBehaviour
     public GameObject Player;
     public GameObject Boat;
     public BoatMovement boatMovement;
-    public BoatMovementNoPhys boatMovement2;
 
     [Space]
     public Transform SeatPoint;
